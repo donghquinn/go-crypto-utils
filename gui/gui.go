@@ -4,10 +4,10 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/container"
-	"fyne.io/fyne/dialog"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/widget"
 	"org.donghyuns.com/secure/keygen/biz"
 )
 
@@ -35,7 +35,6 @@ func BuildGUI(app fyne.App) fyne.CanvasObject {
 	// Create a read-only entry to display the result
 	resultEntry := widget.NewMultiLineEntry()
 	resultEntry.SetPlaceHolder("Encrypted/Hashed value will appear here...")
-	resultEntry.SetReadOnly(true)
 
 	// Create a button to copy the result to the clipboard
 	copyButton := widget.NewButton("Copy", nil)

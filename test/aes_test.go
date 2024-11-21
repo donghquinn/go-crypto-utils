@@ -1,52 +1,118 @@
 package test
 
 import (
-	"encoding/json"
-	"log"
-	"testing"
+	"encoding/base64"
+	"fmt"
 
+	"fyne.io/fyne"
+	"fyne.io/fyne/container"
+	"fyne.io/fyne/dialog"
+	"fyne.io/fyne/widget"
 	"org.donghyuns.com/secure/keygen/biz"
 )
 
-type testInterface struct {
-	Email string `json:"email"`
-}
+// EncryptionMethod represents the available encryption/hash methods
+type EncryptionMethod string
 
-func TestAes(t *testing.T) {
-	newKey, _ := biz.GenerateRandomAES256Key(32)
-	hexKey, base64Key := biz.GenKey(newKey)
+const (
+	AES EncryptionMethod = "AES"
+	SHA EncryptionMethod = "SHA"
+)
 
-	log.Printf("newKey: %v", string(base64Key))
+// BuildGUI constructs the GUI components and returns the main container
+func BuildGUI(app fyne.App, window fyne.Window) fyne.CanvasObject {
+	// Create radio buttons for selecting the encryption method
+	methodGroup := widget.NewRadioGroup([]string{string(AES), string(SHA)}, nil)
+	methodGroup.SetSelected(string(AES)) // Default selection
 
-	text := testInterface{Email: "test@exampel.com"}
+	// Create an input field for user to enter text
+	inputEntry := widget.NewEntry()
+	inputEntry.SetPlaceHolder("Enter text to encrypt/hash")
 
-	// 구조체를 JSON으로 직렬화
-	plaintextBytes, err := json.Marshal(text)
-	if err != nil {
-		t.Fatal("구조체 직렬화 오류:", err)
-		return
+	// Create a button to generate the encrypted/hashed value
+	generateButton := widget.NewButton("Generate", nil)
+
+	// Create a read-only entry to display the result
+	resultEntry := widget.NewMultiLineEntry()
+	resultEntry.SetPlaceHolder("Encrypted/Hashed value will appear here...")
+	resultEntry.SetReadOnly(true)
+
+	// Create a button to copy the result to the clipboard
+	copyButton := widget.NewButton("Copy", nil)
+
+	// Define the action for the Generate button
+	generateButton.OnTapped = func() {
+		selectedMethod := EncryptionMethod(methodGroup.Selected)
+		text := inputEntry.Text
+
+		if text == "" {
+			dialog.ShowError(fmt.Errorf("please enter text to encrypt/hash"), window)
+			return
+		}
+
+		switch selectedMethod {
+		case AES:
+			// Generate AES key
+			newKey, err := biz.GenerateRandomAES256Key(32)
+			if err != nil {
+				dialog.ShowError(fmt.Errorf("Error generating AES key: %v", err), window)
+				return
+			}
+
+			// Encrypt the input text
+			plaintextBytes := []byte(text)
+
+			encryptedBytes, err := biz.EncryptAES256CBC(plaintextBytes, newKey)
+			if err != nil {
+				dialog.ShowError(fmt.Errorf("Encryption Error: %v", err), window)
+				return
+			}
+
+			// Encode the encrypted bytes to Base64 for display
+			encryptedBase64 := base64.StdEncoding.EncodeToString([]byte(encryptedBytes))
+			resultEntry.SetText(encryptedBase64)
+
+		case SHA:
+			// Hash the input text using SHA256
+			hashedBytes, err := biz.HashSHA256([]byte(text))
+			if err != nil {
+				dialog.ShowError(fmt.Errorf("Hashing Error: %v", err), window)
+				return
+			}
+
+			// Encode the hashed bytes to hexadecimal for display
+			hashedHex := fmt.Sprintf("%x", hashedBytes)
+			resultEntry.SetText(hashedHex)
+
+		default:
+			dialog.ShowError(fmt.Errorf("selected method is not supported"), window)
+		}
 	}
 
-	encryptedString, encryptErr := biz.EncryptAES256CBC(plaintextBytes, newKey)
-
-	if encryptErr != nil {
-		t.Fatal("암호화 오류:", encryptErr)
-		return
+	// Define the action for the Copy button
+	copyButton.OnTapped = func() {
+		if resultEntry.Text == "" {
+			dialog.ShowError(fmt.Errorf("there is no content to copy"), window)
+			return
+		}
+		app.SendNotification(&fyne.Notification{
+			Title:   "Copied",
+			Content: "The encrypted/hashed value has been copied to the clipboard.",
+		})
+		// window.Clipboard().SetContent(resultEntry.Text)
 	}
 
-	decryptedString, decryptErr := biz.DecryptAES256CBC(encryptedString, newKey)
+	// Layout the components
+	content := container.NewVBox(
+		widget.NewLabel("Select Encryption Method:"),
+		methodGroup,
+		widget.NewLabel("Input Text:"),
+		inputEntry,
+		generateButton,
+		widget.NewLabel("Result:"),
+		resultEntry,
+		copyButton,
+	)
 
-	if decryptErr != nil {
-		t.Fatal("복호화 오류:", decryptErr)
-		return
-	}
-
-	t.Log("암호키 (Hex):", hexKey)
-	t.Log("암호키 (Base64):", base64Key)
-	t.Log("암호화된 문자: ", string(encryptedString))
-	t.Log("복호화된 평문:", string(decryptedString))
-
-	if string(plaintextBytes) != string(decryptedString) {
-		t.Errorf("Decrypted string is not equal to original string")
-	}
+	return content
 }
