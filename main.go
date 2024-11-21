@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"org.donghyuns.com/secure/keygen/biz"
 )
@@ -13,10 +12,11 @@ type testInterface struct {
 }
 
 func main() {
+	// AES-256 키 생성
 	newKey, _ := biz.GenerateRandomAES256Key(32)
-	_, hexKey, base64Key := biz.GenKey(newKey)
 
-	log.Printf("newKey: %v", string(base64Key))
+	// 키를 헥사 문자열과 Base64 문자열로 인코딩
+	hexKey, base64Key := biz.GenKey(newKey)
 
 	text := testInterface{Email: "test@exampel.com"}
 
