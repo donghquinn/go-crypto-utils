@@ -4,10 +4,11 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 )
 
-func GenKey(bytestring []byte) (string, string) {
+func HashAESKey(bytestring []byte) (string, string) {
 	// 키를 헥사 문자열로 인코딩
 	hexKey := hex.EncodeToString(bytestring)
 	fmt.Printf("헥사 키: %s\n", hexKey)
@@ -19,12 +20,20 @@ func GenKey(bytestring []byte) (string, string) {
 	return hexKey, base64Key
 }
 
-// GenerateRandomAES256Key generates a secure random 32-byte key for AES-256
-func GenerateRandomAES256Key(keyLength int64) ([]byte, error) {
-	key := make([]byte, keyLength) // 32 bytes * 8 = 256 bits
+// GenerateRandomAESKey generates a random AES key of specified byte length
+func GenerateRandomAESKey(length int) ([]byte, error) {
+	if length != 16 && length != 24 && length != 32 { // AES-128, AES-192, AES-256
+		return nil, errors.New("invalid key length: must be 16, 24, or 32 bytes")
+	}
+	key := make([]byte, length)
 	_, err := rand.Read(key)
 	if err != nil {
 		return nil, err
 	}
 	return key, nil
+}
+
+// GenKey returns Hex and Base64 representations of the key
+func GenKey(key []byte) (string, string) {
+	return hex.EncodeToString(key), base64.StdEncoding.EncodeToString(key)
 }
