@@ -2,7 +2,6 @@ package gui
 
 import (
 	"encoding/base64"
-	"encoding/hex"
 	"fmt"
 
 	"fyne.io/fyne/v2"
@@ -13,7 +12,8 @@ import (
 )
 
 func NewEncryptTab(app fyne.App, window fyne.Window) *container.TabItem {
-	methods := []string{"AES-CBC", "AES-GCM", "SHA-256", "SHA-512"}
+	methods := []string{"AES-CBC", "AES-GCM"} // "SHA-256", "SHA-512"
+
 	methodGroup := widget.NewRadioGroup(methods, nil)
 	methodGroup.SetSelected("AES-CBC")
 
@@ -67,14 +67,14 @@ func NewEncryptTab(app fyne.App, window fyne.Window) *container.TabItem {
 			result := base64.StdEncoding.EncodeToString(encrypted)
 			resultEntry.SetText(result)
 
-		case "SHA-256", "SHA-512":
-			hashed, err := biz.HashData([]byte(text), selectedMethod)
-			if err != nil {
-				dialog.ShowError(err, window)
-				return
-			}
-			result := hex.EncodeToString(hashed)
-			resultEntry.SetText(result)
+			// case "SHA-256", "SHA-512":
+			// 	hashed, err := biz.HashData([]byte(text), selectedMethod)
+			// 	if err != nil {
+			// 		dialog.ShowError(err, window)
+			// 		return
+			// 	}
+			// 	result := hex.EncodeToString(hashed)
+			// 	resultEntry.SetText(result)
 		}
 	})
 
