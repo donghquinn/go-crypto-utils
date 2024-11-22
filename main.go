@@ -21,6 +21,7 @@ func main() {
 		gui.NewEncryptTab(myApp, myWindow),
 		gui.NewDecryptTab(myApp, myWindow),
 		gui.NewKeyGenTab(myApp, myWindow),
+		gui.NewUUIDTab(myApp, myWindow),
 	)
 
 	tabs.SetTabLocation(container.TabLocationTop)
