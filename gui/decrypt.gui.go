@@ -18,10 +18,10 @@ func NewDecryptTab(app fyne.App, window fyne.Window) *container.TabItem {
 	methodGroup.SetSelected("AES-CBC")
 
 	encryptedEntry := widget.NewEntry()
-	encryptedEntry.SetPlaceHolder("Enter encrypted data (Base64)")
+	encryptedEntry.SetPlaceHolder("Enter encrypted data (Hex/Base64)")
 
 	keyEntry := widget.NewEntry()
-	keyEntry.SetPlaceHolder("Enter AES key (Hex/Base64)")
+	keyEntry.SetPlaceHolder("Enter key (Hex/Base64)")
 
 	resultEntry := widget.NewMultiLineEntry()
 	resultEntry.SetPlaceHolder("Decrypted text will appear here...")

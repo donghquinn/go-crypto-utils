@@ -21,7 +21,6 @@ func GenerateKeyDialog(app fyne.App, window fyne.Window, keyEntry *widget.Entry)
 
 	// Create dialog content
 	generateButton := widget.NewButton("Generate", nil)
-	cancelButton := widget.NewButton("Cancel", nil)
 
 	// Placeholder for the dialog instance
 	var dlg dialog.Dialog
@@ -54,18 +53,11 @@ func GenerateKeyDialog(app fyne.App, window fyne.Window, keyEntry *widget.Entry)
 		}
 	}
 
-	// Cancel button logic
-	cancelButton.OnTapped = func() {
-		if dlg != nil {
-			dlg.Hide() // Close the dialog
-		}
-	}
-
 	// Layout for the dialog
 	dialogContent := container.NewVBox(
 		widget.NewLabel("Select Key Format:"),
 		choiceGroup,
-		container.NewHBox(generateButton, cancelButton),
+		generateButton, // Only the Generate button is displayed
 	)
 
 	// Create and show the custom dialog
