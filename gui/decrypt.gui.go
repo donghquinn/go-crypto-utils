@@ -26,20 +26,22 @@ func NewDecryptTab(app fyne.App, window fyne.Window) *container.TabItem {
 	resultEntry := widget.NewMultiLineEntry()
 	resultEntry.SetPlaceHolder("Decrypted text will appear here...")
 
-	generateKeyBtn := widget.NewButton("Generate Key", func() {
-		GenerateKeyDialog(app, window, keyEntry)
-	})
-
 	decryptBtn := widget.NewButton("Decrypt", func() {
 		selectedMethod := methodGroup.Selected
 		encryptedBase64 := encryptedEntry.Text
+		keyInput := keyEntry.Text
 
 		if encryptedBase64 == "" {
 			dialog.ShowError(fmt.Errorf("Please enter encrypted data."), window)
 			return
 		}
 
-		key, err := DecodeKey(keyEntry.Text)
+		if keyInput == "" {
+			dialog.ShowError(fmt.Errorf("Please enter a valid AES key."), window)
+			return
+		}
+
+		key, err := DecodeKey(keyInput)
 		if err != nil {
 			dialog.ShowError(err, window)
 			return
@@ -82,7 +84,7 @@ func NewDecryptTab(app fyne.App, window fyne.Window) *container.TabItem {
 		widget.NewLabel("Encrypted Data (Base64):"),
 		encryptedEntry,
 		widget.NewLabel("AES Key (Hex/Base64):"),
-		container.NewHBox(keyEntry, generateKeyBtn),
+		keyEntry,
 		decryptBtn,
 		widget.NewLabel("Decrypted Text:"),
 		resultEntry,
