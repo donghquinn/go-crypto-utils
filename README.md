@@ -10,21 +10,31 @@
 
 ## Providings
 * Encrypt
+![Encryption](screenshots/encrypt.png)
     * AES-CBC
     * AES-GCM
+    * SHA-256 (Upcoming)
+    * SHA-512 (Upcoming)
 
 * Decrypt
+![Decryption](screenshots/decrypt.png)
     * AES-CBC
     * AES-GCM
-
+    * SHA-256 (Upcoming)
+    * SHA-512 (Upcoming)
+    
 * Encode
+![Encode](screenshots/encode.png)
     * Base64
     * Hex
 
 * Decode
+![Decode](screenshots/decode.png)
     * Base64
     * Hex
 
 * Generate AES Key
+![Key Generation](screenshots/keygen.png)
 
 * Generate UUID
+![UUID Generation](screenshots/uuid.png)
