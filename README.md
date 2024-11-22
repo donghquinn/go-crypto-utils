@@ -13,12 +13,16 @@
 ![Encryption](screenshots/encrypt.png)
     * AES-CBC
     * AES-GCM
+    * SHA-256 (Upcoming)
+    * SHA-512 (Upcoming)
 
 * Decrypt
 ![Decryption](screenshots/decrypt.png)
     * AES-CBC
     * AES-GCM
-
+    * SHA-256 (Upcoming)
+    * SHA-512 (Upcoming)
+    
 * Encode
 ![Encode](screenshots/encode.png)
     * Base64
