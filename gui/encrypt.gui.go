@@ -2,7 +2,6 @@ package gui
 
 import (
 	"encoding/base64"
-	"encoding/hex"
 	"fmt"
 
 	"fyne.io/fyne/v2"
@@ -12,26 +11,29 @@ import (
 	"org.donghyuns.com/secure/keygen/biz"
 )
 
-// NewEncryptTab creates the Encryption tab
 func NewEncryptTab(app fyne.App, window fyne.Window) *container.TabItem {
-	methods := []string{"AES-CBC", "AES-GCM", "SHA-256", "SHA-512"}
+	methods := []string{"AES-CBC", "AES-GCM"} // "SHA-256", "SHA-512"
+
 	methodGroup := widget.NewRadioGroup(methods, nil)
 	methodGroup.SetSelected("AES-CBC")
 
-	inputEntry := widget.NewEntry()
-	inputEntry.SetPlaceHolder("Enter text to encrypt/hash")
+	inputEntry := widget.NewMultiLineEntry()
+	inputEntry.SetPlaceHolder("Enter plaintext to encrypt")
 
-	keyEntry := widget.NewEntry()
-	keyEntry.SetPlaceHolder("Enter AES key (Hex/Base64)")
+	// Use MultiLineEntry for AES key input to support long keys
+	keyEntry := widget.NewMultiLineEntry()
+	keyEntry.SetPlaceHolder("Enter AES key (Hex/Base64) or generate new key")
+	keyEntry.Wrapping = fyne.TextWrapBreak // Ensure text wraps within the box
+	keyEntry.SetMinRowsVisible(2)          // Make the box taller
 
 	resultEntry := widget.NewMultiLineEntry()
 	resultEntry.SetPlaceHolder("Result will appear here...")
 
-	generateKeyBtn := widget.NewButton("Generate Key", func() {
+	generateKeyBtn := widget.NewButton("Generate New Key", func() {
 		GenerateKeyDialog(app, window, keyEntry)
 	})
 
-	processBtn := widget.NewButton("Process", func() {
+	processBtn := widget.NewButton("Encrypt", func() {
 		selectedMethod := methodGroup.Selected
 		text := inputEntry.Text
 
@@ -65,14 +67,14 @@ func NewEncryptTab(app fyne.App, window fyne.Window) *container.TabItem {
 			result := base64.StdEncoding.EncodeToString(encrypted)
 			resultEntry.SetText(result)
 
-		case "SHA-256", "SHA-512":
-			hashed, err := biz.HashData([]byte(text), selectedMethod)
-			if err != nil {
-				dialog.ShowError(err, window)
-				return
-			}
-			result := hex.EncodeToString(hashed)
-			resultEntry.SetText(result)
+			// case "SHA-256", "SHA-512":
+			// 	hashed, err := biz.HashData([]byte(text), selectedMethod)
+			// 	if err != nil {
+			// 		dialog.ShowError(err, window)
+			// 		return
+			// 	}
+			// 	result := hex.EncodeToString(hashed)
+			// 	resultEntry.SetText(result)
 		}
 	})
 
@@ -90,7 +92,8 @@ func NewEncryptTab(app fyne.App, window fyne.Window) *container.TabItem {
 		methodGroup,
 		widget.NewLabel("Input Text:"),
 		inputEntry,
-		container.NewHBox(keyEntry, generateKeyBtn),
+		widget.NewLabel("AES Key (Hex/Base64):"),
+		container.NewVBox(keyEntry, generateKeyBtn), // Adjust layout
 		processBtn,
 		widget.NewLabel("Result:"),
 		resultEntry,

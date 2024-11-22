@@ -12,28 +12,33 @@ import (
 
 // NewKeyGenTab creates the Key Generation tab
 func NewKeyGenTab(app fyne.App, window fyne.Window) *container.TabItem {
-	keyTypes := []string{"AES-128", "AES-192", "AES-256"}
+	keyTypes := []string{"AES-128 (16bytes)", "AES-192 (24bytes)", "AES-256 (32bytes)"}
 	keyTypeGroup := widget.NewRadioGroup(keyTypes, nil)
 	keyTypeGroup.SetSelected("AES-256")
 
-	hexEntry := widget.NewEntry()
+	// Read-only multi-line entry for Hex key
+	hexEntry := widget.NewMultiLineEntry()
 	hexEntry.SetPlaceHolder("AES Key in Hexadecimal")
+	hexEntry.Disable()                     // Make the box read-only
+	hexEntry.SetMinRowsVisible(2)          // Increase height
+	hexEntry.Wrapping = fyne.TextWrapBreak // Enable text wrapping
 
-	base64Entry := widget.NewEntry()
+	// Read-only multi-line entry for Base64 key
+	base64Entry := widget.NewMultiLineEntry()
 	base64Entry.SetPlaceHolder("AES Key in Base64")
-
-	resultEntry := widget.NewMultiLineEntry()
-	resultEntry.SetPlaceHolder("Result will appear here...")
+	base64Entry.Disable()                     // Make the box read-only
+	base64Entry.SetMinRowsVisible(2)          // Increase height
+	base64Entry.Wrapping = fyne.TextWrapBreak // Enable text wrapping
 
 	generateBtn := widget.NewButton("Generate Key", func() {
 		selected := keyTypeGroup.Selected
 		var length int
 		switch selected {
-		case "AES-128":
+		case "AES-128 (16bytes)":
 			length = 16
-		case "AES-192":
+		case "AES-192 (24bytes)":
 			length = 24
-		case "AES-256":
+		case "AES-256 (32bytes)":
 			length = 32
 		}
 
@@ -53,7 +58,7 @@ func NewKeyGenTab(app fyne.App, window fyne.Window) *container.TabItem {
 			dialog.ShowInformation("No Key", "No Hex key to copy.", window)
 			return
 		}
-		app.Driver().AllWindows()[0].Clipboard().SetContent(resultEntry.Text)
+		app.Driver().AllWindows()[0].Clipboard().SetContent(hexEntry.Text)
 		dialog.ShowInformation("Copied", "Hex key copied to clipboard.", window)
 	})
 
@@ -62,7 +67,7 @@ func NewKeyGenTab(app fyne.App, window fyne.Window) *container.TabItem {
 			dialog.ShowInformation("No Key", "No Base64 key to copy.", window)
 			return
 		}
-		app.Driver().AllWindows()[0].Clipboard().SetContent(resultEntry.Text)
+		app.Driver().AllWindows()[0].Clipboard().SetContent(base64Entry.Text)
 		dialog.ShowInformation("Copied", "Base64 key copied to clipboard.", window)
 	})
 
@@ -71,9 +76,9 @@ func NewKeyGenTab(app fyne.App, window fyne.Window) *container.TabItem {
 		keyTypeGroup,
 		generateBtn,
 		widget.NewLabel("AES Key (Hexadecimal):"),
-		container.NewHBox(hexEntry, copyHexBtn),
+		container.NewVBox(hexEntry, copyHexBtn), // Adjusted layout for better readability
 		widget.NewLabel("AES Key (Base64):"),
-		container.NewHBox(base64Entry, copyBase64Btn),
+		container.NewVBox(base64Entry, copyBase64Btn), // Adjusted layout for better readability
 	)
 
 	return container.NewTabItem("Key Generation", content)
