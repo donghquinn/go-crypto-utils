@@ -1,39 +1,14 @@
 package biz
 
 import (
-	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 )
-
-// PKCS7 패딩 추가
-func Pkcs7Padding(data []byte, blockSize int) []byte {
-	padding := blockSize - len(data)%blockSize
-	padText := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(data, padText...)
-}
-
-// PKCS7 패딩 제거
-func Pkcs7Unpadding(data []byte) ([]byte, error) {
-	length := len(data)
-	if length == 0 {
-		return nil, fmt.Errorf("데이터가 비어 있습니다")
-	}
-	padding := int(data[length-1])
-	if padding > length || padding == 0 {
-		return nil, fmt.Errorf("잘못된 패딩")
-	}
-	for _, v := range data[length-padding:] {
-		if int(v) != padding {
-			return nil, fmt.Errorf("잘못된 패딩")
-		}
-	}
-	return data[:length-padding], nil
-}
 
 // AES-256-CBC 암호화
 func EncryptAES256CBC(plaintext, key []byte) (string, error) {
@@ -101,6 +76,53 @@ func DecryptAES256CBC(ciphertextBase64 string, key []byte) ([]byte, error) {
 
 	// PKCS7 패딩 제거
 	plaintext, err := Pkcs7Unpadding(plaintextPadded)
+	if err != nil {
+		return nil, err
+	}
+
+	return plaintext, nil
+}
+
+// EncryptAES256GCM encrypts plaintext using AES-256 in GCM mode
+func EncryptAES256GCM(plaintext, key []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, err
+	}
+
+	ciphertext := gcm.Seal(nonce, nonce, plaintext, nil)
+	return ciphertext, nil
+}
+
+// DecryptAES256GCM decrypts ciphertext using AES-256 in GCM mode
+func DecryptAES256GCM(ciphertext, key []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	nonceSize := gcm.NonceSize()
+	if len(ciphertext) < nonceSize {
+		return nil, errors.New("ciphertext too short")
+	}
+
+	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
 		return nil, err
 	}

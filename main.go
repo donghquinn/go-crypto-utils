@@ -3,6 +3,7 @@ package main
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
 	"org.donghyuns.com/secure/keygen/gui"
 )
 
@@ -11,16 +12,19 @@ type testInterface struct {
 }
 
 func main() {
-	// Initialize the Fyne app
 	myApp := app.New()
-	myWindow := myApp.NewWindow("Encryption Generator")
-	myWindow.Resize(fyne.NewSize(500, 500))
-	// myWindow.SetIcon(theme.DocumentIcon()) // Optional: Set an icon for the window
+	myWindow := myApp.NewWindow("AES Key Generator")
+	myWindow.Resize(fyne.NewSize(800, 600))
 
-	// Build the GUI and set it as the window content
-	content := gui.BuildGUI(myApp)
-	myWindow.SetContent(content)
+	// Create Tabs
+	tabs := container.NewAppTabs(
+		gui.NewEncryptTab(myApp, myWindow),
+		gui.NewDecryptTab(myApp, myWindow),
+		gui.NewKeyGenTab(myApp, myWindow),
+		gui.NewUUIDTab(myApp, myWindow),
+	)
 
-	// Show and run the application
+	tabs.SetTabLocation(container.TabLocationTop)
+	myWindow.SetContent(tabs)
 	myWindow.ShowAndRun()
 }
