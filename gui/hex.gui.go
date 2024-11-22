@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 
 	"fyne.io/fyne/v2"
@@ -10,13 +10,13 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func NewEncodeBase64Tab(app fyne.App, window fyne.Window) *container.TabItem {
+func NewEncodeHexTab(app fyne.App, window fyne.Window) *container.TabItem {
 	inputEntry := widget.NewMultiLineEntry()
-	inputEntry.SetPlaceHolder("Enter text to encode into Base64...")
+	inputEntry.SetPlaceHolder("Enter text to encode into Hex...")
 	inputEntry.SetMinRowsVisible(3)
 
 	resultEntry := widget.NewMultiLineEntry()
-	resultEntry.SetPlaceHolder("Encoded Base64 result will appear here...")
+	resultEntry.SetPlaceHolder("Encoded Hex result will appear here...")
 	// resultEntry.SetReadOnly(true)
 	resultEntry.SetMinRowsVisible(3)
 
@@ -27,7 +27,7 @@ func NewEncodeBase64Tab(app fyne.App, window fyne.Window) *container.TabItem {
 			return
 		}
 
-		encoded := base64.StdEncoding.EncodeToString([]byte(input))
+		encoded := hex.EncodeToString([]byte(input))
 		resultEntry.SetText(encoded)
 	})
 
@@ -41,7 +41,7 @@ func NewEncodeBase64Tab(app fyne.App, window fyne.Window) *container.TabItem {
 	})
 
 	content := container.NewVBox(
-		widget.NewLabel("Encode to Base64"),
+		widget.NewLabel("Encode to Hex"),
 		widget.NewLabel("Input:"),
 		inputEntry,
 		encodeBtn,
@@ -50,37 +50,36 @@ func NewEncodeBase64Tab(app fyne.App, window fyne.Window) *container.TabItem {
 		copyBtn,
 	)
 
-	return container.NewTabItem("Encode Base64", content)
+	return container.NewTabItem("Encode Hex", content)
 }
 
-// NewDecodeBase64Tab creates the Decode Base64 Strings tab
-func NewDecodeBase64Tab(app fyne.App, window fyne.Window) *container.TabItem {
+func NewDecodeHexTab(app fyne.App, window fyne.Window) *container.TabItem {
 	inputEntry := widget.NewMultiLineEntry()
-	inputEntry.SetPlaceHolder("Enter Base64-encoded string here...")
-	inputEntry.SetMinRowsVisible(2)
+	inputEntry.SetPlaceHolder("Enter Hex-encoded string here...")
+	inputEntry.SetMinRowsVisible(3)
 
 	resultEntry := widget.NewMultiLineEntry()
 	resultEntry.SetPlaceHolder("Decoded result will appear here...")
-	// resultEntry.Disable()
-	resultEntry.SetMinRowsVisible(2)
+	// resultEntry.SetReadOnly(true)
+	resultEntry.SetMinRowsVisible(3)
 
 	decodeBtn := widget.NewButton("Decode", func() {
 		input := inputEntry.Text
 		if input == "" {
-			dialog.ShowError(fmt.Errorf("Please enter a Base64-encoded string."), window)
+			dialog.ShowError(fmt.Errorf("Please enter a Hex string to decode."), window)
 			return
 		}
 
-		decoded, err := base64.StdEncoding.DecodeString(input)
+		decoded, err := hex.DecodeString(input)
 		if err != nil {
-			dialog.ShowError(fmt.Errorf("Error decoding Base64 string: %v", err), window)
+			dialog.ShowError(fmt.Errorf("Error decoding Hex string: %v", err), window)
 			return
 		}
 
 		resultEntry.SetText(string(decoded))
 	})
 
-	copyBtn := widget.NewButton("Copy Decoded Text", func() {
+	copyBtn := widget.NewButton("Copy Result", func() {
 		if resultEntry.Text == "" {
 			dialog.ShowInformation("No Content", "Nothing to copy.", window)
 			return
@@ -90,7 +89,7 @@ func NewDecodeBase64Tab(app fyne.App, window fyne.Window) *container.TabItem {
 	})
 
 	content := container.NewVBox(
-		widget.NewLabel("Base64 Decoder"),
+		widget.NewLabel("Decode from Hex"),
 		widget.NewLabel("Input:"),
 		inputEntry,
 		decodeBtn,
@@ -99,5 +98,5 @@ func NewDecodeBase64Tab(app fyne.App, window fyne.Window) *container.TabItem {
 		copyBtn,
 	)
 
-	return container.NewTabItem("Decode Base64", content)
+	return container.NewTabItem("Decode Hex", content)
 }

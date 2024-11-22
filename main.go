@@ -20,7 +20,8 @@ func main() {
 	tabs := container.NewAppTabs(
 		gui.NewEncryptTab(myApp, myWindow),
 		gui.NewDecryptTab(myApp, myWindow),
-		gui.NewBase64Tab(myApp, myWindow),
+		gui.NewEncodeTab(myApp, myWindow),
+		gui.NewDecodeTab(myApp, myWindow),
 		// gui.NewDecodeBase64Tab(myApp, myWindow),
 		gui.NewKeyGenTab(myApp, myWindow),
 		gui.NewUUIDTab(myApp, myWindow),

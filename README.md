@@ -19,9 +19,11 @@
 
 * Encode
     * Base64
+    * Hex
 
 * Decode
     * Base64
+    * Hex
 
 * Generate AES Key
 
