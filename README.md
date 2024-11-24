@@ -6,6 +6,7 @@
 * It's crypto utils written by golang.
 * It must be quite bothering creating secure keys, or encoding strings just for test.
     * In my case, I felt lots of bothersome every single moment I had to encode request bodies or fields for API Encryption/Decryption test with base64 and AES / SHA / Etc...
+    * Plus, Generating Random String on MacOs has been removed. I loved this one.
 * This is a simple tool for generating keys or encoding strings
 
 ## Providings
