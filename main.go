@@ -7,10 +7,6 @@ import (
 	"org.donghyuns.com/secure/keygen/gui"
 )
 
-type testInterface struct {
-	Email string `json:"email"`
-}
-
 func main() {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("AES Key Generator")
@@ -25,6 +21,7 @@ func main() {
 		// gui.NewDecodeBase64Tab(myApp, myWindow),
 		gui.NewKeyGenTab(myApp, myWindow),
 		gui.NewUUIDTab(myApp, myWindow),
+		gui.NewRandomStringTab(myApp, myWindow),
 	)
 
 	tabs.SetTabLocation(container.TabLocationTop)
