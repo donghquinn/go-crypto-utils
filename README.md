@@ -40,4 +40,4 @@
 ![UUID Generation](screenshots/uuid.png)
 
 * Generate Random String
-![Random String](randomstring.png)
+![Random String](screenshots/randomstring.png)
