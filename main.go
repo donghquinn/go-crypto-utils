@@ -9,7 +9,7 @@ import (
 
 func main() {
 	myApp := app.New()
-	myWindow := myApp.NewWindow("AES Key Generator")
+	myWindow := myApp.NewWindow("Secure Helper")
 	myWindow.Resize(fyne.NewSize(800, 600))
 
 	// Create Tabs
