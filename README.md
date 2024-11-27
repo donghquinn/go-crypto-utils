@@ -9,7 +9,31 @@
     * Plus, Generating Random String on MacOs has been removed. I loved this one.
 * This is a simple tool for generating keys or encoding strings
 
-## Providings
+---
+
+## Build
+* Building Macos
+    * Just build with the script I've uploaded when you are using macos
+    * I'm using mac m2 apple silicon
+* Building Windows 64bit
+    * Building Windows cross-platform on macos, You need to configure C Compilers
+    * Follow this step; I've utilized homebrew to install mingw-w64, which is windows cross-compliers
+    * Then set enviroment variables for cross-compilation
+
+```zsh
+brew install mingw-w64
+```
+
+```zsh
+export GOOS=windows
+export GOARCH=amd64
+export CGO_ENABLED=1
+export CC=x86_64-w64-mingw32-gcc
+```
+
+---
+
+## Provide
 * Encrypt
 ![Encryption](screenshots/encrypt.png)
     * AES-CBC
