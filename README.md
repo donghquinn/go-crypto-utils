@@ -20,11 +20,11 @@
     * Follow this step; I've utilized homebrew to install mingw-w64, which is windows cross-compliers
     * Then set enviroment variables for cross-compilation
 
-```zsh
+```bash
 brew install mingw-w64
 ```
 
-```zsh
+```bash
 export GOOS=windows
 export GOARCH=amd64
 export CGO_ENABLED=1
@@ -32,6 +32,15 @@ export CC=x86_64-w64-mingw32-gcc
 ```
 
 ### Useing Makefile
+* Building Env
+
+```bash
+export GOOS=windows
+export GOARCH=amd64
+export CGO_ENABLED=1
+export CC=x86_64-w64-mingw32-gcc
+```
+
 * Install fyne/v2 on local host
 
 ```bash
