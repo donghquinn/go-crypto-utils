@@ -31,6 +31,14 @@ export CGO_ENABLED=1
 export CC=x86_64-w64-mingw32-gcc
 ```
 
+### Useing Makefile
+* Install fyne/v2 on local host
+
+```bash
+    go install fyne.io/fyne/v2/cmd/fyne@latest
+```
+
+
 ---
 
 ## Provide
