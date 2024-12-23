@@ -47,6 +47,12 @@ export CC=x86_64-w64-mingw32-gcc
     go install fyne.io/fyne/v2/cmd/fyne@latest
 ```
 
+* Input Env Variancess (MACOS)
+
+```bash
+    export PATH=$PATH:$(go env GOPATH)/bin
+```
+
 
 ---
 

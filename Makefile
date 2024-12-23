@@ -2,7 +2,7 @@
 all: windows macos
 
 windows:
-	fyne package -os windows -icon icon.png
+	fyne package -os windows -icon ./icon.png
 
 macos:
-	fyne package -os darwin -icon icon.png
+	fyne package -os darwin -icon ./icon.png
