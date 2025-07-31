@@ -14,29 +14,25 @@ import (
 
 // GenerateKeyDialog displays a dialog to generate an AES key in Hex or Base64 format
 func GenerateKeyDialog(app fyne.App, window fyne.Window, keyEntry *widget.Entry) {
-	// Define key formats
+	ui := NewUIComponents(app, window)
 	keyFormats := []string{"Hexadecimal", "Base64"}
-	choiceGroup := widget.NewRadioGroup(keyFormats, nil)
-	choiceGroup.SetSelected("Hexadecimal") // Set a default selection to prevent nil
+	choiceGroup := ui.CreateRadioGroup(keyFormats, "Hexadecimal")
 
-	// Create dialog content
-	generateButton := widget.NewButton("Generate", nil)
-
-	// Placeholder for the dialog instance
+	generateButton := ui.CreateProcessButton("Generate", nil)
 	var dlg dialog.Dialog
 
 	// Generate button logic
 	generateButton.OnTapped = func() {
 		selectedFormat := choiceGroup.Selected
-		if selectedFormat == "" {
-			dialog.ShowError(fmt.Errorf("Please select a key format"), window)
+		if err := ui.ValidateInput(selectedFormat, "a key format"); err != nil {
+			ui.ShowError(err)
 			return
 		}
 
 		keyLength := 32 // Default to AES-256; adjust if needed
 		key, err := biz.GenerateRandomAESKey(keyLength)
 		if err != nil {
-			dialog.ShowError(fmt.Errorf("Error generating AES key: %v", err), window)
+			ui.ShowError(fmt.Errorf("Error generating AES key: %v", err))
 			return
 		}
 
@@ -65,65 +61,6 @@ func GenerateKeyDialog(app fyne.App, window fyne.Window, keyEntry *widget.Entry)
 	dlg.Show()
 }
 
-func InputKeyDialog(app fyne.App, window fyne.Window, keyEntry *widget.Entry) {
-	// Define key formats
-	keyFormats := []string{"Hexadecimal", "Base64"}
-	choiceGroup := widget.NewRadioGroup(keyFormats, nil)
-	choiceGroup.SetSelected("Hexadecimal") // Set a default selection to prevent nil
-
-	// Create dialog content
-	// generateButton := widget.NewButton("Generate", nil)
-	// cancelButton := widget.NewButton("Cancel", nil)
-
-	// Placeholder for the dialog instance
-	var dlg dialog.Dialog
-
-	// Generate button logic
-	// generateButton.OnTapped = func() {
-	// 	selectedFormat := choiceGroup.Selected
-	// 	if selectedFormat == "" {
-	// 		dialog.ShowError(fmt.Errorf("Please select a key format"), window)
-	// 		return
-	// 	}
-
-	// 	// keyLength := 32 // Default to AES-256; adjust if needed
-	// 	// key, err := biz.GenerateRandomAESKey(keyLength)
-	// 	// if err != nil {
-	// 	// 	dialog.ShowError(fmt.Errorf("Error generating AES key: %v", err), window)
-	// 	// 	return
-	// 	// }
-
-	// 	var keyStr string
-	// 	// if selectedFormat == "Hexadecimal" {
-	// 	// 	keyStr = hex.EncodeToString(key)
-	// 	// } else if selectedFormat == "Base64" {
-	// 	// 	keyStr = base64.StdEncoding.EncodeToString(key)
-	// 	// }
-
-	// 	keyEntry.SetText(keyStr)
-	// 	if dlg != nil {
-	// 		dlg.Hide() // Close the dialog
-	// 	}
-	// }
-
-	// // Cancel button logic
-	// cancelButton.OnTapped = func() {
-	// 	if dlg != nil {
-	// 		dlg.Hide() // Close the dialog
-	// 	}
-	// }
-
-	// Layout for the dialog
-	dialogContent := container.NewVBox(
-		widget.NewLabel("Select Key Format:"),
-		choiceGroup,
-		// container.NewHBox(generateButton, cancelButton),
-	)
-
-	// Create and show the custom dialog
-	dlg = dialog.NewCustom("Generate AES Key", "Close", dialogContent, window)
-	dlg.Show()
-}
 
 // decodeKey decodes the key from Hex or Base64 format
 func DecodeKey(keyStr string) ([]byte, error) {

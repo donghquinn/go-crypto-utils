@@ -2,43 +2,32 @@ package gui
 
 import (
 	"encoding/base64"
-	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"org.donghyuns.com/secure/keygen/biz"
 )
 
 func NewEncryptTab(app fyne.App, window fyne.Window) *container.TabItem {
-	methods := []string{"AES-CBC", "AES-GCM"} // "SHA-256", "SHA-512"
+	ui := NewUIComponents(app, window)
+	methods := []string{"AES-CBC", "AES-GCM"}
 
-	methodGroup := widget.NewRadioGroup(methods, nil)
-	methodGroup.SetSelected("AES-CBC")
-
-	inputEntry := widget.NewMultiLineEntry()
-	inputEntry.SetPlaceHolder("Enter plaintext to encrypt")
-
-	// Use MultiLineEntry for AES key input to support long keys
-	keyEntry := widget.NewMultiLineEntry()
-	keyEntry.SetPlaceHolder("Enter AES key (Hex/Base64) or generate new key")
-	keyEntry.Wrapping = fyne.TextWrapBreak // Ensure text wraps within the box
-	keyEntry.SetMinRowsVisible(2)          // Make the box taller
-
-	resultEntry := widget.NewMultiLineEntry()
-	resultEntry.SetPlaceHolder("Result will appear here...")
+	methodGroup := ui.CreateRadioGroup(methods, "AES-CBC")
+	inputEntry := ui.CreateMultiLineEntry("Enter plaintext to encrypt", 3)
+	keyEntry := ui.CreateMultiLineEntry("Enter AES key (Hex/Base64) or generate new key", 2)
+	resultEntry := ui.CreateMultiLineEntry("Result will appear here...", 3)
 
 	generateKeyBtn := widget.NewButton("Generate New Key", func() {
 		GenerateKeyDialog(app, window, keyEntry)
 	})
 
-	processBtn := widget.NewButton("Encrypt", func() {
+	processBtn := ui.CreateProcessButton("Encrypt", func() {
 		selectedMethod := methodGroup.Selected
 		text := inputEntry.Text
 
-		if text == "" {
-			dialog.ShowError(fmt.Errorf("Please enter text."), window)
+		if err := ui.ValidateInput(text, "text"); err != nil {
+			ui.ShowError(err)
 			return
 		}
 
@@ -46,7 +35,7 @@ func NewEncryptTab(app fyne.App, window fyne.Window) *container.TabItem {
 		case "AES-CBC", "AES-GCM":
 			key, err := DecodeKey(keyEntry.Text)
 			if err != nil {
-				dialog.ShowError(err, window)
+				ui.ShowError(err)
 				return
 			}
 
@@ -60,7 +49,7 @@ func NewEncryptTab(app fyne.App, window fyne.Window) *container.TabItem {
 			}
 
 			if errEncrypt != nil {
-				dialog.ShowError(errEncrypt, window)
+				ui.ShowError(errEncrypt)
 				return
 			}
 
@@ -78,14 +67,7 @@ func NewEncryptTab(app fyne.App, window fyne.Window) *container.TabItem {
 		}
 	})
 
-	copyBtn := widget.NewButton("Copy", func() {
-		if resultEntry.Text == "" {
-			dialog.ShowInformation("No Content", "Nothing to copy.", window)
-			return
-		}
-		app.Driver().AllWindows()[0].Clipboard().SetContent(resultEntry.Text)
-		dialog.ShowInformation("Copied", "Result copied to clipboard.", window)
-	})
+	copyBtn := ui.CreateCopyButton("Copy", resultEntry, "Result copied to clipboard.")
 
 	content := container.NewVBox(
 		widget.NewLabel("Select Method:"),
@@ -93,7 +75,7 @@ func NewEncryptTab(app fyne.App, window fyne.Window) *container.TabItem {
 		widget.NewLabel("Input Text:"),
 		inputEntry,
 		widget.NewLabel("AES Key (Hex/Base64):"),
-		container.NewVBox(keyEntry, generateKeyBtn), // Adjust layout
+		container.NewVBox(keyEntry, generateKeyBtn),
 		processBtn,
 		widget.NewLabel("Result:"),
 		resultEntry,
