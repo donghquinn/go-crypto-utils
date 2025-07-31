@@ -4,18 +4,15 @@ import (
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"org.donghyuns.com/secure/keygen/biz"
 )
 
 // NewRandomStringTab creates a tab for generating random strings with a slider.
 func NewRandomStringTab(app fyne.App, window fyne.Window) *container.TabItem {
+	ui := NewUIComponents(app, window)
 	lengthLabel := widget.NewLabel("Length: 16 bytes")
-	resultEntry := widget.NewMultiLineEntry()
-	resultEntry.SetPlaceHolder("Random string will appear here...")
-	//resultEntry.SetReadOnly(true)
-	resultEntry.SetMinRowsVisible(2)
+	resultEntry := ui.CreateMultiLineEntry("Random string will appear here...", 2)
 
 	// Slider for selecting byte length
 	slider := widget.NewSlider(1, 128)
@@ -28,21 +25,14 @@ func NewRandomStringTab(app fyne.App, window fyne.Window) *container.TabItem {
 
 		randomString, err := biz.GenerateCustomRandomString(length)
 		if err != nil {
-			dialog.ShowError(fmt.Errorf("Error generating random string: %v", err), window)
+			ui.ShowError(fmt.Errorf("Error generating random string: %v", err))
 			return
 		}
 		resultEntry.SetText(randomString)
 	}
 
 	// Copy Button
-	copyBtn := widget.NewButton("Copy Random String", func() {
-		if resultEntry.Text == "" {
-			dialog.ShowInformation("No Content", "Nothing to copy.", window)
-			return
-		}
-		app.Driver().AllWindows()[0].Clipboard().SetContent(resultEntry.Text)
-		dialog.ShowInformation("Copied", "Random string copied to clipboard.", window)
-	})
+	copyBtn := ui.CreateCopyButton("Copy Random String", resultEntry, "Random string copied to clipboard.")
 
 	content := container.NewVBox(
 		widget.NewLabel("Random String Generator"),
