@@ -1,143 +1,116 @@
-# Go Crypto Utils
+# Secure Helper
 
-A cross-platform GUI application for cryptographic operations, key generation, and encoding/decoding utilities built with Go and Fyne.
+A cross-platform desktop app for everyday cryptographic chores — AES
+encryption/decryption, Base64 and Hex encoding, AES key generation, UUIDs and
+random strings. No command line, no throwaway scripts.
 
-## Maintainer: donghquinn
+**Maintainer:** donghquinn
 
-## Overview
+Built with Electron. The original Go/Fyne implementation is archived under
+[`legacy/go/`](legacy/go/README.md).
 
-Go Crypto Utils is a desktop application that provides a user-friendly interface for common cryptographic operations. It eliminates the need for command-line tools or writing custom scripts for encryption, decryption, encoding, and key generation tasks.
+## Features
 
-### Key Features
+- **Encryption / Decryption** — AES-CBC and AES-GCM (128/192/256-bit keys)
+- **Encoding / Decoding** — Base64 and Hexadecimal
+- **Key Generation** — AES-128, AES-192, AES-256, shown in Hex and Base64
+- **UUID Generation** — RFC 4122 v4
+- **Random Strings** — 1–128 characters, `[a-zA-Z0-9]`
+- **Cross-platform** — macOS, Windows and Linux installers from one build host
 
-- **Encryption/Decryption**: AES-256-CBC and AES-256-GCM algorithms
-- **Hashing**: SHA-256 and SHA-512 support
-- **Encoding/Decoding**: Base64 and Hexadecimal
-- **Key Generation**: Secure AES key generation (128, 192, 256-bit)
-- **UUID Generation**: RFC 4122 compliant UUIDs
-- **Random String Generation**: Customizable random string generation
-- **Cross-platform**: Supports macOS and Windows
+All cryptography runs in the main process on Node's `node:crypto`; nothing
+leaves the machine and the app makes no network requests.
 
 ## Requirements
 
-- Go 1.23.3 or later
-- Fyne v2.5.2+ framework
+- Node.js 20+ and npm (development only — end users just run the installer)
 
-## Installation
+## Development
 
-### Prerequisites
-
-1. Install Go from [golang.org](https://golang.org/download/)
-2. Install Fyne command-line tools:
-   ```bash
-   go install fyne.io/fyne/v2/cmd/fyne@latest
-   ```
-3. Add Go binary path to your environment:
-   ```bash
-   export PATH=$PATH:$(go env GOPATH)/bin
-   ```
-
-### Building from Source
-
-#### macOS
 ```bash
-# Using build script
-./build-macos.sh
-
-# Or using Makefile
-make macos
+npm install
+npm start     # launch the app
+npm test      # unit tests for the crypto and operations layers
 ```
 
-#### Windows (Cross-compilation from macOS)
-1. Install MinGW-w64:
-   ```bash
-   brew install mingw-w64
-   ```
+## Building installers
 
-2. Set environment variables:
-   ```bash
-   export GOOS=windows
-   export GOARCH=amd64
-   export CGO_ENABLED=1
-   export CC=x86_64-w64-mingw32-gcc
-   ```
-
-3. Build:
-   ```bash
-   # Using build script
-   ./build-windows64.sh
-   
-   # Or using Makefile
-   make windows
-   ```
-
-#### Using Makefile (Build All)
 ```bash
-make all  # Builds both Windows and macOS versions
+npm run dist          # macOS + Windows + Linux
+npm run dist:mac      # .dmg and .zip        (x64, arm64)
+npm run dist:win      # NSIS setup, portable (x64, arm64)
+npm run dist:linux    # AppImage, .deb, .tar.gz (x64, arm64)
 ```
+
+Artifacts land in `dist/`. All three platforms build from macOS — no MinGW,
+Wine or Docker needed. CI (`.github/workflows/build.yml`) also builds each
+platform on its native runner and attaches the artifacts to a `v*` tag release.
+
+### Code signing
+
+Builds are unsigned. macOS users get a Gatekeeper warning on first launch
+(right-click → Open, or `xattr -dr com.apple.quarantine "/Applications/Secure Helper.app"`);
+Windows shows a SmartScreen prompt. To sign, set `mac.identity` in
+`electron-builder.yml` and provide `CSC_LINK` / `CSC_KEY_PASSWORD` (plus
+`APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` for notarization).
 
 ## Usage
 
-Launch the application and use the tabbed interface to access different features:
+| Tab | What it does |
+| --- | --- |
+| Encryption | Encrypt text with AES-CBC or AES-GCM; generate a key inline |
+| Decryption | Decrypt Base64 ciphertext with the matching key |
+| Encode | Text → Base64 or Hex |
+| Decode | Base64 or Hex → text |
+| Key Generation | Random AES-128/192/256 key, in Hex and Base64 |
+| UUID | Generate a v4 UUID |
+| Random String | Alphanumeric string, length set by a slider |
 
-### Available Tabs
+Keys are accepted as Hexadecimal or Base64. The input is tried as Hex first and
+falls back to Base64, matching the previous build.
 
-1. **Encrypt** - Encrypt plaintext using AES algorithms
-   - AES-256-CBC
-   - AES-256-GCM
+## Compatibility with the Go build
 
-2. **Decrypt** - Decrypt ciphertext using AES algorithms
-   - AES-256-CBC
-   - AES-256-GCM
+Ciphertext written by the Go/Fyne version decrypts here, and vice versa. This
+was verified both directions against the original `biz` package across AES-128,
+AES-192 and AES-256 with Hex and Base64 keys.
 
-3. **Encode** - Encode data to different formats
-   - Base64 encoding
-   - Hexadecimal encoding
+Two details are carried over deliberately:
 
-4. **Decode** - Decode data from different formats
-   - Base64 decoding
-   - Hexadecimal decoding
+- **AES-CBC output is Base64-encoded twice.** `EncryptAES256CBC` returned a
+  Base64 string, and the old Encryption tab Base64-encoded it again; the
+  Decryption tab undid both layers. Changing it would break existing
+  ciphertext, so the format is preserved.
+- **AES-GCM output is Base64-encoded once**, over `nonce || ciphertext || tag`.
 
-5. **Key Generation** - Generate secure AES keys
-   - AES-128 (16 bytes)
-   - AES-192 (24 bytes)
-   - AES-256 (32 bytes)
-   - Output in both hexadecimal and Base64 formats
+One behaviour was **not** carried over: the old Encryption tab discarded the
+error from `EncryptAES256CBC`, so an invalid key silently produced an empty
+result. Errors now surface in the UI.
 
-6. **UUID Generation** - Generate RFC 4122 compliant UUIDs
-
-7. **Random String** - Generate random strings with customizable parameters
-
-## Project Structure
+## Project structure
 
 ```
-├── main.go              # Application entry point
-├── go.mod               # Go module dependencies
-├── Makefile             # Build automation
-├── biz/                 # Business logic package
-│   ├── aes.go          # AES encryption/decryption
-│   ├── key.go          # Key generation utilities
-│   ├── pkcs.go         # PKCS padding functions
-│   ├── random.go       # Random string generation
-│   ├── sha.go          # SHA hashing functions
-│   └── uuid.go         # UUID generation
-├── gui/                 # GUI components
-│   ├── common.go       # Shared GUI utilities
-│   ├── encrypt.gui.go  # Encryption tab
-│   ├── decrypt.gui.go  # Decryption tab
-│   ├── encode.gui.go   # Encoding tab
-│   ├── decode.gui.go   # Decoding tab (includes base64 and hex)
-│   ├── key.gui.go      # Key generation tab
-│   ├── uuid.gui.go     # UUID generation tab
-│   └── random.gui.go   # Random string tab
-├── screenshots/         # Application screenshots
-└── icon.png            # Application icon
+├── src/
+│   ├── main/
+│   │   ├── main.js          # app lifecycle, window, menu
+│   │   ├── ipc.js           # IPC handler registration
+│   │   ├── operations.js    # tab-level operations (port of gui/)
+│   │   └── crypto.js        # AES, PKCS#7, keys, UUID, random (port of biz/)
+│   ├── preload/preload.js   # contextBridge API over a fixed channel list
+│   └── renderer/            # index.html, styles.css, renderer.js
+├── test/crypto.test.js
+├── build/icon.png           # 1024×1024 source for every platform icon
+├── electron-builder.yml
+├── legacy/go/               # archived Go/Fyne implementation
+└── screenshots/
 ```
 
-## Dependencies
+### Security posture
 
-- **fyne.io/fyne/v2**: Cross-platform GUI framework
-- **github.com/google/uuid**: UUID generation library
+`contextIsolation` and `sandbox` are on, `nodeIntegration` is off, the renderer
+has a restrictive CSP, navigation and new windows are blocked, and the preload
+exposes only a fixed list of IPC channels. The renderer never touches key
+material beyond passing it through to the main process.
 
 ## Screenshots
 
@@ -151,4 +124,4 @@ Launch the application and use the tabbed interface to access different features
 
 ## License
 
-See [LICENSE](LICENSE) file for details.
+See [LICENSE](LICENSE).

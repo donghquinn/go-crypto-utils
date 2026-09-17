@@ -1,0 +1,82 @@
+appId: com.donghyuns.secure.keygen
+productName: Secure Helper
+copyright: Copyright © donghquinn
+
+directories:
+  output: dist
+  buildResources: build
+
+# No auto-update channel: skip latest*.yml generation entirely.
+publish: null
+
+files:
+  - src/**/*
+  - package.json
+  - "!**/*.map"
+
+# Nothing in src/ needs compiling, so ASAR packing is all that is required.
+asar: true
+
+mac:
+  category: public.app-category.developer-tools
+  # Note: electron-builder strips a trailing " Helper" from CFBundleExecutable
+  # (a rule aimed at Electron's own helper processes), so the binary inside the
+  # bundle is "Secure". Cosmetic only — Finder, the Dock and the menu bar all
+  # use CFBundleName ("Secure Helper"). Renaming it would rename the .app too.
+  icon: build/icon.png
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
+  # Unsigned builds: hardened runtime + notarization are skipped until the
+  # project has a Developer ID certificate.
+  identity: null
+  extendInfo:
+    LSMinimumSystemVersion: "11.0"
+
+dmg:
+  artifactName: ${productName}-${version}-${arch}.${ext}
+
+win:
+  icon: build/icon.png
+  executableName: Secure Helper
+  target:
+    - target: nsis
+      arch: [x64, arm64]
+    - target: portable
+      arch: [x64]
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  artifactName: ${productName}-${version}-${arch}-setup.${ext}
+
+portable:
+  artifactName: ${productName}-${version}-portable.${ext}
+
+linux:
+  icon: build/icon.png
+  # Lowercase binary + matching .desktop file name (see desktopName in package.json).
+  executableName: secure-helper
+  # Links running windows to the .desktop entry (WM_CLASS association).
+  syncDesktopName: true
+  category: Utility
+  maintainer: donghquinn
+  synopsis: AES encryption, encoding and key generation utility
+  desktop:
+    entry:
+      Name: Secure Helper
+      Terminal: "false"
+      Type: Application
+  target:
+    - target: AppImage
+      arch: [x64, arm64]
+    - target: deb
+      arch: [x64, arm64]
+    - target: tar.gz
+      arch: [x64, arm64]
+
+appImage:
+  artifactName: ${productName}-${version}-${arch}.${ext}
