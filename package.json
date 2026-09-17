@@ -1,0 +1,35 @@
+{
+  "name": "go-crypto-utils",
+  "productName": "Secure Helper",
+  "version": "2.0.0",
+  "description": "Desktop utility for AES encryption/decryption, encoding, key, UUID and random string generation",
+  "desktopName": "secure-helper.desktop",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/donghquinn/go-crypto-utils",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/donghquinn/go-crypto-utils.git"
+  },
+  "author": {
+    "name": "donghquinn"
+  },
+  "main": "src/main/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test \"test/**/*.test.js\"",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder -mwl",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "^44.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "allowScripts": {
+    "electron": true,
+    "electron-winstaller": true
+  }
+}

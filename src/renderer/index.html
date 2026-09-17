@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
+    />
+    <title>Secure Helper</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <nav class="tabs" role="tablist" aria-label="Tools">
+      <button class="tab" role="tab" data-panel="encryption">Encryption</button>
+      <button class="tab" role="tab" data-panel="decryption">Decryption</button>
+      <button class="tab" role="tab" data-panel="encode">Encode</button>
+      <button class="tab" role="tab" data-panel="decode">Decode</button>
+      <button class="tab" role="tab" data-panel="keygen">Key Generation</button>
+      <button class="tab" role="tab" data-panel="uuid">UUID</button>
+      <button class="tab" role="tab" data-panel="random">Random String</button>
+    </nav>
+
+    <main>
+      <!-- Encryption -->
+      <section class="panel" id="panel-encryption" role="tabpanel">
+        <label class="field-label">Select Method:</label>
+        <div class="radio-group" id="encrypt-method">
+          <label><input type="radio" name="encrypt-method" value="AES-CBC" checked /> AES-CBC</label>
+          <label><input type="radio" name="encrypt-method" value="AES-GCM" /> AES-GCM</label>
+        </div>
+
+        <label class="field-label" for="encrypt-input">Input Text:</label>
+        <textarea id="encrypt-input" rows="4" placeholder="Enter plaintext to encrypt"></textarea>
+
+        <label class="field-label" for="encrypt-key">AES Key (Hex/Base64):</label>
+        <textarea id="encrypt-key" rows="2" placeholder="Enter AES key (Hex/Base64) or generate new key"></textarea>
+        <div class="row">
+          <button id="encrypt-genkey" class="secondary">Generate New Key</button>
+        </div>
+
+        <button id="encrypt-run" class="primary">Encrypt</button>
+
+        <label class="field-label" for="encrypt-result">Result:</label>
+        <textarea id="encrypt-result" rows="4" readonly placeholder="Result will appear here..."></textarea>
+        <button class="secondary" data-copy="encrypt-result" data-copy-message="Result copied to clipboard.">Copy</button>
+      </section>
+
+      <!-- Decryption -->
+      <section class="panel" id="panel-decryption" role="tabpanel">
+        <label class="field-label">Select Method:</label>
+        <div class="radio-group" id="decrypt-method">
+          <label><input type="radio" name="decrypt-method" value="AES-CBC" checked /> AES-CBC</label>
+          <label><input type="radio" name="decrypt-method" value="AES-GCM" /> AES-GCM</label>
+        </div>
+
+        <label class="field-label" for="decrypt-input">Encrypted Data (Base64):</label>
+        <textarea id="decrypt-input" rows="3" placeholder="Enter encrypted data (Base64)"></textarea>
+
+        <label class="field-label" for="decrypt-key">AES Key (Hex/Base64):</label>
+        <textarea id="decrypt-key" rows="2" placeholder="Enter key (Hex/Base64)"></textarea>
+
+        <button id="decrypt-run" class="primary">Decrypt</button>
+
+        <label class="field-label" for="decrypt-result">Decrypted Text:</label>
+        <textarea id="decrypt-result" rows="4" readonly placeholder="Decrypted text will appear here..."></textarea>
+        <button class="secondary" data-copy="decrypt-result" data-copy-message="Decrypted text copied to clipboard.">Copy</button>
+      </section>
+
+      <!-- Encode -->
+      <section class="panel" id="panel-encode" role="tabpanel">
+        <nav class="subtabs" role="tablist">
+          <button class="subtab" role="tab" data-subpanel="encode-base64">Base64</button>
+          <button class="subtab" role="tab" data-subpanel="encode-hex">Hex</button>
+        </nav>
+
+        <div class="subpanel" id="subpanel-encode-base64">
+          <h2>Base64 Encode</h2>
+          <textarea id="encode-base64-input" rows="4" placeholder="Enter text to encode into Base64..."></textarea>
+          <button id="encode-base64-run" class="primary">Encode</button>
+          <textarea id="encode-base64-result" rows="4" readonly placeholder="Base64 encoded result will appear here..."></textarea>
+          <button class="secondary" data-copy="encode-base64-result" data-copy-message="Encoded text copied to clipboard.">Copy Result</button>
+        </div>
+
+        <div class="subpanel" id="subpanel-encode-hex">
+          <h2>Hex Encode</h2>
+          <textarea id="encode-hex-input" rows="4" placeholder="Enter text to encode into Hex..."></textarea>
+          <button id="encode-hex-run" class="primary">Encode</button>
+          <textarea id="encode-hex-result" rows="4" readonly placeholder="Hex encoded result will appear here..."></textarea>
+          <button class="secondary" data-copy="encode-hex-result" data-copy-message="Encoded text copied to clipboard.">Copy Result</button>
+        </div>
+      </section>
+
+      <!-- Decode -->
+      <section class="panel" id="panel-decode" role="tabpanel">
+        <nav class="subtabs" role="tablist">
+          <button class="subtab" role="tab" data-subpanel="decode-base64">Base64</button>
+          <button class="subtab" role="tab" data-subpanel="decode-hex">Hex</button>
+        </nav>
+
+        <div class="subpanel" id="subpanel-decode-base64">
+          <h2>Base64 Decode</h2>
+          <textarea id="decode-base64-input" rows="4" placeholder="Enter Base64 string to decode..."></textarea>
+          <button id="decode-base64-run" class="primary">Decode</button>
+          <textarea id="decode-base64-result" rows="4" readonly placeholder="Decoded result will appear here..."></textarea>
+          <button class="secondary" data-copy="decode-base64-result" data-copy-message="Decoded text copied to clipboard.">Copy Result</button>
+        </div>
+
+        <div class="subpanel" id="subpanel-decode-hex">
+          <h2>Hex Decode</h2>
+          <textarea id="decode-hex-input" rows="4" placeholder="Enter Hex string to decode..."></textarea>
+          <button id="decode-hex-run" class="primary">Decode</button>
+          <textarea id="decode-hex-result" rows="4" readonly placeholder="Decoded result will appear here..."></textarea>
+          <button class="secondary" data-copy="decode-hex-result" data-copy-message="Decoded text copied to clipboard.">Copy Result</button>
+        </div>
+      </section>
+
+      <!-- Key Generation -->
+      <section class="panel" id="panel-keygen" role="tabpanel">
+        <label class="field-label">Select Key Type:</label>
+        <div class="radio-group" id="keygen-type">
+          <label><input type="radio" name="keygen-type" value="AES-128 (16bytes)" /> AES-128 (16bytes)</label>
+          <label><input type="radio" name="keygen-type" value="AES-192 (24bytes)" /> AES-192 (24bytes)</label>
+          <label><input type="radio" name="keygen-type" value="AES-256 (32bytes)" checked /> AES-256 (32bytes)</label>
+        </div>
+
+        <button id="keygen-run" class="primary">Generate Key</button>
+
+        <label class="field-label" for="keygen-hex">AES Key (Hexadecimal):</label>
+        <textarea id="keygen-hex" rows="2" readonly placeholder="AES Key in Hexadecimal"></textarea>
+        <button class="secondary" data-copy="keygen-hex" data-copy-message="Hex key copied to clipboard.">Copy Hex Key</button>
+
+        <label class="field-label" for="keygen-base64">AES Key (Base64):</label>
+        <textarea id="keygen-base64" rows="2" readonly placeholder="AES Key in Base64"></textarea>
+        <button class="secondary" data-copy="keygen-base64" data-copy-message="Base64 key copied to clipboard.">Copy Base64 Key</button>
+      </section>
+
+      <!-- UUID -->
+      <section class="panel" id="panel-uuid" role="tabpanel">
+        <label class="field-label" for="uuid-result">UUID:</label>
+        <input id="uuid-result" type="text" readonly placeholder="Generated UUID will appear here..." />
+        <div class="row">
+          <button id="uuid-run" class="primary">Generate UUID</button>
+          <button class="secondary" data-copy="uuid-result" data-copy-message="UUID copied to clipboard.">Copy</button>
+        </div>
+      </section>
+
+      <!-- Random String -->
+      <section class="panel" id="panel-random" role="tabpanel">
+        <h2>Random String Generator</h2>
+        <label class="field-label" id="random-length-label" for="random-slider">Length: 16 bytes</label>
+        <input id="random-slider" type="range" min="1" max="128" value="16" />
+        <textarea id="random-result" rows="3" readonly placeholder="Random string will appear here..."></textarea>
+        <button class="secondary" data-copy="random-result" data-copy-message="Random string copied to clipboard.">Copy Random String</button>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="renderer.js"></script>
+  </body>
+</html>

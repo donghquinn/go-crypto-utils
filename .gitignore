@@ -1,3 +1,6 @@
 .DS_Store
 *.exe
 bin
+node_modules
+dist
+out
