@@ -16,24 +16,17 @@
 
   /* ---------- download table ---------- */
 
-  // Artifact names follow electron-builder.yml. `arch` is the label shown to
-  // the reader; `file` is templated with the version.
+  // Artifact names follow electron-builder.yml, which builds three target
+  // types at x64 and arm64: a .dmg, an NSIS installer and an AppImage.
   var ARTIFACTS = [
-    { os: "mac", kind: "Apple silicon · .dmg", arch: "arm64", file: "Secure Helper-{v}-arm64.dmg" },
-    { os: "mac", kind: "Intel · .dmg", arch: "x64", file: "Secure Helper-{v}-x64.dmg" },
-    { os: "mac", kind: "Apple silicon · .zip", arch: "arm64", file: "Secure Helper-{v}-arm64-mac.zip" },
-    { os: "mac", kind: "Intel · .zip", arch: "x64", file: "Secure Helper-{v}-mac.zip" },
+    { os: "mac", kind: "Apple silicon", arch: "arm64", file: "Secure Helper-{v}-arm64.dmg" },
+    { os: "mac", kind: "Intel", arch: "x64", file: "Secure Helper-{v}-x64.dmg" },
 
     { os: "win", kind: "Installer", arch: "x64", file: "Secure Helper-{v}-x64-setup.exe" },
-    { os: "win", kind: "Installer", arch: "arm64", file: "Secure Helper-{v}-arm64-setup.exe" },
-    { os: "win", kind: "Portable", arch: "x64", file: "Secure Helper-{v}-portable.exe" },
+    { os: "win", kind: "Installer (ARM)", arch: "arm64", file: "Secure Helper-{v}-arm64-setup.exe" },
 
     { os: "linux", kind: "AppImage", arch: "x86_64", file: "Secure Helper-{v}-x86_64.AppImage" },
-    { os: "linux", kind: "AppImage", arch: "arm64", file: "Secure Helper-{v}-arm64.AppImage" },
-    { os: "linux", kind: "Debian package", arch: "amd64", file: "go-crypto-utils_{v}_amd64.deb" },
-    { os: "linux", kind: "Debian package", arch: "arm64", file: "go-crypto-utils_{v}_arm64.deb" },
-    { os: "linux", kind: "Tarball", arch: "x64", file: "go-crypto-utils-{v}.tar.gz" },
-    { os: "linux", kind: "Tarball", arch: "arm64", file: "go-crypto-utils-{v}-arm64.tar.gz" }
+    { os: "linux", kind: "AppImage (ARM)", arch: "arm64", file: "Secure Helper-{v}-arm64.AppImage" }
   ];
 
   function urlFor(file) {

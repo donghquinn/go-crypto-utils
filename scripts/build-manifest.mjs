@@ -22,38 +22,33 @@ if (!dir || !version || !baseUrlRaw) {
 const baseUrl = baseUrlRaw.replace(/\/+$/, "");
 const prefix = `v${version}`;
 
-/** Ordered: the first pattern that matches a filename wins. */
+/**
+ * Ordered: the first pattern that matches a filename wins.
+ *
+ * electron-builder.yml builds exactly three target types, x64 and arm64 each.
+ * Anything not matched here is not offered on the download site.
+ */
 const RULES = [
-  { re: /-arm64\.dmg$/i,            os: "mac",   arch: "arm64",  kind: "Apple silicon · .dmg" },
-  { re: /-x64\.dmg$/i,              os: "mac",   arch: "x64",    kind: "Intel · .dmg" },
-  { re: /\.dmg$/i,                  os: "mac",   arch: "x64",    kind: ".dmg" },
-  { re: /-arm64-mac\.zip$/i,        os: "mac",   arch: "arm64",  kind: "Apple silicon · .zip" },
-  { re: /-mac\.zip$/i,              os: "mac",   arch: "x64",    kind: "Intel · .zip" },
+  { re: /-arm64\.dmg$/i,       os: "mac",   arch: "arm64",  kind: "Apple silicon" },
+  { re: /-x64\.dmg$/i,         os: "mac",   arch: "x64",    kind: "Intel" },
 
-  { re: /-arm64-setup\.exe$/i,      os: "win",   arch: "arm64",  kind: "Installer" },
-  { re: /-x64-setup\.exe$/i,        os: "win",   arch: "x64",    kind: "Installer" },
-  { re: /-portable\.exe$/i,         os: "win",   arch: "x64",    kind: "Portable" },
-  { re: /setup\.exe$/i,             os: "win",   arch: "x64",    kind: "Installer" },
+  { re: /-x64-setup\.exe$/i,   os: "win",   arch: "x64",    kind: "Installer" },
+  { re: /-arm64-setup\.exe$/i, os: "win",   arch: "arm64",  kind: "Installer (ARM)" },
 
-  { re: /-arm64\.AppImage$/i,       os: "linux", arch: "arm64",  kind: "AppImage" },
-  { re: /\.AppImage$/i,             os: "linux", arch: "x86_64", kind: "AppImage" },
-  { re: /_arm64\.deb$/i,            os: "linux", arch: "arm64",  kind: "Debian package" },
-  { re: /_amd64\.deb$/i,            os: "linux", arch: "amd64",  kind: "Debian package" },
-  { re: /-arm64\.tar\.gz$/i,        os: "linux", arch: "arm64",  kind: "Tarball" },
-  { re: /\.tar\.gz$/i,              os: "linux", arch: "x64",    kind: "Tarball" },
+  { re: /-arm64\.AppImage$/i,  os: "linux", arch: "arm64",  kind: "AppImage (ARM)" },
+  { re: /\.AppImage$/i,        os: "linux", arch: "x86_64", kind: "AppImage" },
 ];
 
-/** Sort key: platform, then the arch people are most likely to want. */
+/** Sort key: platform, then the build people are most likely to want. */
 const OS_ORDER = { mac: 0, win: 1, linux: 2 };
 const KIND_ORDER = [
-  "Apple silicon · .dmg", "Intel · .dmg", ".dmg",
-  "Apple silicon · .zip", "Intel · .zip",
-  "Installer", "Portable",
-  "AppImage", "Debian package", "Tarball",
+  "Apple silicon", "Intel",
+  "Installer", "Installer (ARM)",
+  "AppImage", "AppImage (ARM)",
 ];
 
-/** Anything else in the directory (unpacked trees, debug logs) is not a download. */
-const DISTRIBUTABLE = /\.(dmg|zip|exe|AppImage|deb|rpm|pkg|snap|tar\.gz|tar\.xz)$/i;
+/** Anything else in the directory (checksums, the manifest itself) is not a download. */
+const DISTRIBUTABLE = /\.(dmg|exe|AppImage)$/i;
 
 function* walk(root) {
   for (const entry of readdirSync(root, { withFileTypes: true })) {

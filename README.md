@@ -37,10 +37,21 @@ npm test      # unit tests for the crypto and operations layers
 
 ```bash
 npm run dist          # macOS + Windows + Linux
-npm run dist:mac      # .dmg and .zip        (x64, arm64)
-npm run dist:win      # NSIS setup, portable (x64, arm64)
-npm run dist:linux    # AppImage, .deb, .tar.gz (x64, arm64)
+npm run dist:mac      # .dmg              (x64, arm64)
+npm run dist:win      # NSIS setup .exe   (x64, arm64)
+npm run dist:linux    # AppImage          (x64, arm64)
 ```
+
+Three target types, two architectures each — six files per release:
+
+| Platform | File | Arch |
+| --- | --- | --- |
+| macOS | `Secure Helper-<version>-arm64.dmg` | Apple silicon |
+| macOS | `Secure Helper-<version>-x64.dmg` | Intel |
+| Windows | `Secure Helper-<version>-x64-setup.exe` | x64 |
+| Windows | `Secure Helper-<version>-arm64-setup.exe` | ARM |
+| Linux | `Secure Helper-<version>-x86_64.AppImage` | x86_64 |
+| Linux | `Secure Helper-<version>-arm64.AppImage` | ARM |
 
 Artifacts land in `dist/`. All three platforms build from macOS — no MinGW,
 Wine or Docker needed. CI (`.github/workflows/build.yml`) also builds each
@@ -90,10 +101,10 @@ The bucket also needs a CORS rule allowing `GET` from `https://donghquinn.github
 so the site can read the manifest. Objects land under a versioned prefix:
 
 ```
-v2.0.0/Secure Helper-2.0.0-arm64.dmg    # and every other installer
+v2.0.0/Secure Helper-2.0.0-arm64.dmg        # and the other five installers
 v2.0.0/SHA256SUMS.txt
-v2.0.0/manifest.json                    # immutable copy
-latest.json                             # the one mutable object; site polls it
+v2.0.0/manifest.json                        # immutable copy
+latest.json                                 # the one mutable object; site polls it
 ```
 
 Everything under `v<version>/` is immutable and cached for a year;
@@ -101,9 +112,15 @@ Everything under `v<version>/` is immutable and cached for a year;
 manifest — it classifies each artifact by filename into platform, architecture
 and kind.
 
-The R2 upload runs *after* the GitHub release, which stays the canonical copy;
-R2 is the mirror the download links point at. `SHA256SUMS.txt` is attached to
-the release as well.
+The R2 upload runs *after* the GitHub release, which stays the canonical copy.
+Every download button on the site links to the R2 public URL, not to the
+release assets. `SHA256SUMS.txt` is attached to the release as well.
+
+Adding or removing a target means updating three places in step: the `target:`
+lists in `electron-builder.yml`, `RULES` in `scripts/build-manifest.mjs`, and
+`ARTIFACTS` in `site/app.js`. The manifest generator logs anything it cannot
+classify, so a new target shows up as a warning in the release job rather than
+silently missing from the site.
 
 ### Download site
 

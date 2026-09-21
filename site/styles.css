@@ -302,7 +302,8 @@ main { display: block; }
   background: var(--surface);
 }
 .dl-card h3 { margin: 0 0 4px; font-size: 1.1rem; }
-.dl-note { margin: 0 0 16px; color: var(--text-dim); font-size: 0.86rem; }
+/* min-height keeps the link lists aligned across cards when one note wraps. */
+.dl-note { margin: 0 0 16px; min-height: 2.6em; color: var(--text-dim); font-size: 0.86rem; }
 .dl-card.is-yours { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 
 .dl-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
