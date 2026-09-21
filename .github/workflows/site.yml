@@ -67,7 +67,10 @@ jobs:
             echo "::error::Placeholder substitution failed"
             exit 1
           fi
-
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
 
   deploy:
     needs: build
@@ -76,9 +79,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/configure-pages@v6
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: site
       - id: deploy
         uses: actions/deploy-pages@v5
