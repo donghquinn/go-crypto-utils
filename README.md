@@ -44,7 +44,8 @@ npm run dist:linux    # AppImage, .deb, .tar.gz (x64, arm64)
 
 Artifacts land in `dist/`. All three platforms build from macOS — no MinGW,
 Wine or Docker needed. CI (`.github/workflows/build.yml`) also builds each
-platform on its native runner and attaches the artifacts to a `v*` tag release.
+platform on its native runner and, on a `v*` tag, attaches the artifacts to a
+GitHub release *and* uploads them to Cloudflare R2 for the download site.
 
 ### Code signing
 
@@ -53,6 +54,67 @@ Builds are unsigned. macOS users get a Gatekeeper warning on first launch
 Windows shows a SmartScreen prompt. To sign, set `mac.identity` in
 `electron-builder.yml` and provide `CSC_LINK` / `CSC_KEY_PASSWORD` (plus
 `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` for notarization).
+
+## Release and hosting
+
+Pushing a `v*` tag runs the full pipeline in `.github/workflows/build.yml`:
+tests, a native build per platform, a GitHub release, then an upload to R2.
+
+### R2 configuration
+
+Set these once under **Settings → Secrets and variables → Actions**:
+
+| Kind | Name | Value |
+| --- | --- | --- |
+| Secret | `R2_ACCOUNT_ID` | Cloudflare account ID |
+| Secret | `R2_ACCESS_KEY_ID` | R2 API token key ID |
+| Secret | `R2_SECRET_ACCESS_KEY` | R2 API token secret |
+| Secret | `R2_BUCKET` | Bucket name |
+| Variable | `R2_PUBLIC_BASE_URL` | Public base URL, no trailing slash |
+
+The bucket needs a public base URL (an `r2.dev` domain or a custom one) and a
+CORS rule allowing `GET` from the Pages origin, so the site can read the
+release manifest. Objects land under a versioned prefix:
+
+```
+v2.0.0/Secure Helper-2.0.0-arm64.dmg    # and every other installer
+v2.0.0/SHA256SUMS.txt
+v2.0.0/manifest.json                    # immutable copy
+latest.json                             # the one mutable object; site polls it
+```
+
+Everything under `v<version>/` is immutable and cached for a year;
+`latest.json` gets a five-minute TTL. `scripts/build-manifest.mjs` produces the
+manifest — it classifies each artifact by filename into platform, architecture
+and kind.
+
+The R2 upload runs *after* the GitHub release, which stays the canonical copy;
+R2 is the mirror the download links point at. `SHA256SUMS.txt` is attached to
+the release as well.
+
+### Download site
+
+`site/` is a static page deployed to GitHub Pages by
+`.github/workflows/site.yml`. Enable it once under **Settings → Pages →
+Source: GitHub Actions**.
+
+The workflow copies `screenshots/` and `build/icon.png` into `site/assets/`
+(generated, and git-ignored) and substitutes `__VERSION__` and
+`__DOWNLOAD_BASE__` in `index.html`. At runtime the page fetches
+`latest.json` from R2 and rebuilds its download list from it, so a new
+release appears without redeploying; the version baked in at deploy time is the
+fallback when that fetch fails. The R2 upload step triggers a redeploy on its
+way out.
+
+To preview locally:
+
+```bash
+mkdir -p site/assets/screenshots && cp screenshots/*.png site/assets/screenshots/
+cp build/icon.png site/assets/icon.png
+sed -e 's|__VERSION__|2.0.0|g' -e 's|__DOWNLOAD_BASE__|https://dl.example.com|g' \
+  site/index.html > site/preview.html
+python3 -m http.server -d site 8000
+```
 
 ## Usage
 
@@ -99,6 +161,8 @@ result. Errors now surface in the UI.
 │   ├── preload/preload.js   # contextBridge API over a fixed channel list
 │   └── renderer/            # index.html, styles.css, renderer.js
 ├── test/crypto.test.js
+├── site/                    # download site deployed to GitHub Pages
+├── scripts/build-manifest.mjs   # release manifest consumed by the site
 ├── build/icon.png           # 1024×1024 source for every platform icon
 ├── electron-builder.yml
 ├── legacy/go/               # archived Go/Fyne implementation

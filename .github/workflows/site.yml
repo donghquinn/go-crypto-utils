@@ -1,0 +1,83 @@
+name: Site
+
+# Builds site/ and deploys it to GitHub Pages. Enable once under
+# Settings → Pages → Source: GitHub Actions.
+#
+# The download links point at Cloudflare R2, where the Build workflow uploads
+# the installers. Set the repository variable R2_PUBLIC_BASE_URL to the
+# bucket's public base URL (e.g. https://dl.example.com, no trailing slash).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'screenshots/**'
+      - 'build/icon.png'
+      - 'package.json'
+      - '.github/workflows/site.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never cancel a half-finished deploy; just queue behind it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble site
+        env:
+          DOWNLOAD_BASE: ${{ vars.R2_PUBLIC_BASE_URL }}
+        run: |
+          set -euo pipefail
+
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Building site for v$VERSION"
+
+          if [ -z "$DOWNLOAD_BASE" ]; then
+            echo "::warning::R2_PUBLIC_BASE_URL is not set — download buttons will fall back to the GitHub releases page."
+          fi
+
+          mkdir -p site/assets/screenshots
+          cp screenshots/*.png site/assets/screenshots/
+
+          # A 1024px source icon is overkill for a favicon and a 28px wordmark.
+          if command -v convert >/dev/null 2>&1; then
+            convert build/icon.png -resize 256x256 site/assets/icon.png
+          else
+            cp build/icon.png site/assets/icon.png
+          fi
+
+          # `|` as the sed delimiter: the download base is a URL.
+          sed -i \
+            -e "s|__VERSION__|$VERSION|g" \
+            -e "s|__DOWNLOAD_BASE__|${DOWNLOAD_BASE%/}|g" \
+            site/index.html
+
+          if grep -q '__VERSION__\|__DOWNLOAD_BASE__' site/index.html; then
+            echo "::error::Placeholder substitution failed"
+            exit 1
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
