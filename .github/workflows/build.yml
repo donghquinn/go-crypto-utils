@@ -53,11 +53,8 @@ jobs:
           name: ${{ matrix.os }}-installers
           path: |
             dist/*.dmg
-            dist/*.zip
             dist/*.exe
             dist/*.AppImage
-            dist/*.deb
-            dist/*.tar.gz
           if-no-files-found: error
 
   release:

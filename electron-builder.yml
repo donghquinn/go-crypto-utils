@@ -27,8 +27,6 @@ mac:
   target:
     - target: dmg
       arch: [x64, arm64]
-    - target: zip
-      arch: [x64, arm64]
   # Unsigned builds: hardened runtime + notarization are skipped until the
   # project has a Developer ID certificate.
   identity: null
@@ -44,17 +42,12 @@ win:
   target:
     - target: nsis
       arch: [x64, arm64]
-    - target: portable
-      arch: [x64]
 
 nsis:
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
   artifactName: ${productName}-${version}-${arch}-setup.${ext}
-
-portable:
-  artifactName: ${productName}-${version}-portable.${ext}
 
 linux:
   icon: build/icon.png
@@ -63,8 +56,6 @@ linux:
   # Links running windows to the .desktop entry (WM_CLASS association).
   syncDesktopName: true
   category: Utility
-  maintainer: donghquinn
-  synopsis: AES encryption, encoding and key generation utility
   desktop:
     entry:
       Name: Secure Helper
@@ -72,10 +63,6 @@ linux:
       Type: Application
   target:
     - target: AppImage
-      arch: [x64, arm64]
-    - target: deb
-      arch: [x64, arm64]
-    - target: tar.gz
       arch: [x64, arm64]
 
 appImage:
