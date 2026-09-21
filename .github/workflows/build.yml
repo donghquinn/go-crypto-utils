@@ -40,6 +40,14 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Build installers
+        # No code-signing certificates yet: builds are unsigned/ad-hoc.
+        # electron-builder.yml also sets mac.identity to null; this stops
+        # auto-discovery from finding a cert if one is ever added to a runner.
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        # --publish never: publishing is action-gh-release's job below. Without
+        # this, electron-builder arms its own GitHub publisher just because a
+        # tag is present.
         run: npx electron-builder ${{ matrix.target }} --publish never
       - uses: actions/upload-artifact@v4
         with:
@@ -62,9 +70,130 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          path: out
           merge-multiple: true
+
+      - name: Checksum
+        run: |
+          cd out
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
       - uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*
+          files: out/*
           generate_release_notes: true
+
+  # Mirror the same artifacts to Cloudflare R2, which is what the download site
+  # links at. R2 speaks the S3 API, so the aws CLI preinstalled on the runner
+  # works against it unchanged. This runs after the GitHub Release on purpose:
+  # that's the canonical copy, so it lands first and R2 is the mirror.
+  #
+  # Unlike the per-runner upload in the previous workflow, this is one job that
+  # collects all three platforms' artifacts first — the download site needs a
+  # single manifest describing every file in the release, which no individual
+  # runner can write on its own.
+  #
+  # Configure once under Settings -> Secrets and variables -> Actions:
+  #
+  #   Secrets   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET
+  #   Variable  R2_PUBLIC_BASE_URL   e.g. https://dl.example.com  (no trailing /)
+  #
+  # The bucket needs a public base URL (r2.dev or a custom domain) and a CORS
+  # rule allowing GET from the Pages origin, so the site can read latest.json.
+  publish-r2:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write        # to kick off the site deploy at the end
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      # R2 has no regions, but the SDK refuses to sign without one.
+      AWS_DEFAULT_REGION: auto
+      # aws-cli v2.23+ attaches CRC32 checksum trailers by default, which R2
+      # has historically rejected. Asking for them only when the operation
+      # requires them sidesteps that and costs nothing.
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      R2_PUBLIC_BASE_URL: ${{ vars.R2_PUBLIC_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+
+      - name: Determine version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload to Cloudflare R2
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          # Fail loudly and specifically: an unset secret otherwise surfaces as
+          # an opaque signature error from the S3 API.
+          for name in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY R2_ACCOUNT_ID \
+                      R2_BUCKET R2_PUBLIC_BASE_URL; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is not set. Add it under Settings -> Secrets and variables -> Actions."
+              exit 1
+            fi
+          done
+
+          endpoint="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+
+          cd out
+          rm -f *.blockmap
+          sha256sum * > SHA256SUMS.txt
+
+          # The manifest the download site reads: every artifact classified by
+          # platform, architecture and kind, with its public URL.
+          node ../scripts/build-manifest.mjs . "$VERSION" "${R2_PUBLIC_BASE_URL%/}" > manifest.json
+          cat manifest.json
+
+          # Versioned prefix, same layout as the previous release workflow.
+          # Immutable: nothing under v<version>/ is ever rewritten.
+          aws s3 cp . "s3://${R2_BUCKET}/v${VERSION}/" \
+            --recursive \
+            --no-progress \
+            --cache-control "public, max-age=31536000, immutable" \
+            --endpoint-url "$endpoint"
+
+          # The one mutable object: the pointer the site polls for the current
+          # release. Short TTL so a new version shows up promptly.
+          aws s3 cp manifest.json "s3://${R2_BUCKET}/latest.json" \
+            --no-progress \
+            --content-type application/json \
+            --cache-control "public, max-age=300" \
+            --endpoint-url "$endpoint"
+
+      - name: Summary
+        run: |
+          {
+            echo "### Mirrored to R2"
+            echo
+            echo "\`${R2_PUBLIC_BASE_URL%/}/v${{ steps.version.outputs.version }}/\`"
+            echo
+            echo "| File | Platform | Arch |"
+            echo "| --- | --- | --- |"
+            node -e '
+              const m = require("./out/manifest.json");
+              for (const f of m.files) {
+                console.log(`| ${f.name} | ${f.os} | ${f.arch} |`);
+              }
+            '
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Refresh the download site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run site.yml --ref "${{ github.event.repository.default_branch }}"

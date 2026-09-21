@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en" data-version="__VERSION__" data-downloads="__DOWNLOAD_BASE__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secure Helper — AES, encoding and key generation on your desktop</title>
+<meta name="description" content="A cross-platform desktop app for everyday cryptographic chores: AES-CBC/GCM encryption, Base64 and Hex encoding, AES key generation, UUIDs and random strings. Offline by design.">
+<link rel="icon" href="assets/icon.png" type="image/png">
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="Secure Helper">
+<meta property="og:description" content="AES encryption, encoding, key generation, UUIDs and random strings — offline, on your desktop.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/icon.png">
+</head>
+<body>
+
+<a class="skip" href="#download">Skip to downloads</a>
+
+<header class="site-head">
+  <a class="brand" href="#top">
+    <img src="assets/icon.png" alt="" width="28" height="28">
+    <span>Secure Helper</span>
+  </a>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#shots">Screenshots</a>
+    <a href="#security">Security</a>
+    <a href="#download">Download</a>
+    <a class="ghost" href="https://github.com/donghquinn/go-crypto-utils">GitHub</a>
+  </nav>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Version <span data-version-text>—</span> · Apache-2.0 · macOS, Windows, Linux</p>
+      <h1>Cryptographic chores,<br>without the command line.</h1>
+      <p class="lede">
+        AES encryption and decryption, Base64 and Hex encoding, AES key
+        generation, UUIDs and random strings — in one small desktop app.
+        No throwaway scripts, no pasting secrets into a website.
+      </p>
+      <div class="cta">
+        <a class="btn primary" id="primary-dl" href="#download">
+          <span data-primary-label>Download</span>
+          <small data-primary-note>Choose your platform</small>
+        </a>
+        <a class="btn" href="#download">All downloads</a>
+      </div>
+      <ul class="trust">
+        <li><strong>Zero network calls.</strong> Nothing you type leaves the machine.</li>
+        <li><strong>Node <code>node:crypto</code>.</strong> No hand-rolled ciphers.</li>
+        <li><strong>Open source.</strong> Read every line before you trust it.</li>
+      </ul>
+    </div>
+    <div class="hero-shot">
+      <img src="assets/screenshots/encrypt.png" alt="The Encryption tab of Secure Helper, showing AES mode selection, key field and ciphertext output." width="900" height="688" loading="eager">
+    </div>
+  </section>
+
+  <section id="features" class="section">
+    <h2>Seven tools, one window</h2>
+    <p class="section-lede">Each tab does one job and does it without ceremony.</p>
+    <div class="grid">
+      <article class="card">
+        <h3>Encryption</h3>
+        <p>AES-CBC and AES-GCM with 128, 192 or 256-bit keys. Generate a key inline if you don't have one yet.</p>
+      </article>
+      <article class="card">
+        <h3>Decryption</h3>
+        <p>Decrypt Base64 ciphertext with the matching key. Errors surface in the UI instead of silently yielding an empty box.</p>
+      </article>
+      <article class="card">
+        <h3>Encoding</h3>
+        <p>Text to Base64 or Hexadecimal, as much of it as you care to paste.</p>
+      </article>
+      <article class="card">
+        <h3>Decoding</h3>
+        <p>Base64 or Hex back to text, with the same tolerance for input shape.</p>
+      </article>
+      <article class="card">
+        <h3>Key generation</h3>
+        <p>Random AES-128, AES-192 or AES-256 keys, shown in both Hex and Base64 so they drop straight into whatever needs them.</p>
+      </article>
+      <article class="card">
+        <h3>UUIDs</h3>
+        <p>RFC 4122 version 4, one click at a time.</p>
+      </article>
+      <article class="card">
+        <h3>Random strings</h3>
+        <p>1 to 128 characters of <code>[a-zA-Z0-9]</code>, length set by a slider.</p>
+      </article>
+      <article class="card accent-card">
+        <h3>Keys in either encoding</h3>
+        <p>Paste a key as Hex or Base64. The input is tried as Hex first and falls back to Base64 — no format toggle to get wrong.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="shots" class="section">
+    <h2>Every tab</h2>
+    <p class="section-lede">The whole app, one screen at a time.</p>
+    <div class="shots">
+      <div class="shot-tabs" role="tablist" aria-label="Screenshots">
+        <button role="tab" aria-selected="true" aria-controls="shot-panel" data-shot="encrypt" data-cap="Encrypt text with AES-CBC or AES-GCM; generate a key inline.">Encryption</button>
+        <button role="tab" aria-selected="false" aria-controls="shot-panel" data-shot="decrypt" data-cap="Decrypt Base64 ciphertext with the matching key.">Decryption</button>
+        <button role="tab" aria-selected="false" aria-controls="shot-panel" data-shot="encode" data-cap="Text to Base64 or Hexadecimal.">Encode</button>
+        <button role="tab" aria-selected="false" aria-controls="shot-panel" data-shot="decode" data-cap="Base64 or Hex back to text.">Decode</button>
+        <button role="tab" aria-selected="false" aria-controls="shot-panel" data-shot="keygen" data-cap="Random AES-128/192/256 key, in Hex and Base64.">Key generation</button>
+        <button role="tab" aria-selected="false" aria-controls="shot-panel" data-shot="uuid" data-cap="Generate a v4 UUID.">UUID</button>
+        <button role="tab" aria-selected="false" aria-controls="shot-panel" data-shot="randomstring" data-cap="Alphanumeric string, length set by a slider.">Random string</button>
+      </div>
+      <figure id="shot-panel" role="tabpanel">
+        <img id="shot-img" src="assets/screenshots/encrypt.png" alt="Encryption tab" width="900" height="688" loading="lazy">
+        <figcaption id="shot-cap">Encrypt text with AES-CBC or AES-GCM; generate a key inline.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="security" class="section">
+    <h2>Why it's safe to paste a key into</h2>
+    <div class="grid two">
+      <article class="card">
+        <h3>It cannot phone home</h3>
+        <p>
+          The app makes no network requests. Navigation and new windows are
+          blocked outright, and the renderer runs under a restrictive
+          Content-Security-Policy.
+        </p>
+      </article>
+      <article class="card">
+        <h3>The renderer never holds secrets</h3>
+        <p>
+          <code>contextIsolation</code> and <code>sandbox</code> are on,
+          <code>nodeIntegration</code> is off, and the preload exposes a fixed
+          list of IPC channels — nothing more.
+        </p>
+      </article>
+      <article class="card">
+        <h3>Real crypto primitives</h3>
+        <p>
+          All cryptography runs in the main process on Node's
+          <code>node:crypto</code>: AES-CBC and AES-GCM, PKCS#7 padding,
+          <code>randomBytes</code> for keys and strings.
+        </p>
+      </article>
+      <article class="card">
+        <h3>Compatible with the Go build</h3>
+        <p>
+          Ciphertext from the original Go/Fyne version decrypts here and vice
+          versa, verified across AES-128/192/256 with both Hex and Base64 keys.
+        </p>
+      </article>
+    </div>
+    <p class="fineprint">
+      Two quirks are preserved on purpose so old ciphertext still opens:
+      AES-CBC output is Base64-encoded <em>twice</em>, and AES-GCM output is
+      Base64-encoded once over <code>nonce || ciphertext || tag</code>.
+    </p>
+  </section>
+
+  <section id="download" class="section">
+    <h2>Download</h2>
+    <p class="section-lede">
+      Version <span data-version-text>—</span>. Installers are built on each
+      platform's native runner and published straight from CI.
+    </p>
+
+    <div class="dl-grid" id="dl-grid">
+      <article class="dl-card" data-os="mac">
+        <h3>macOS</h3>
+        <p class="dl-note">Requires macOS 11 or later.</p>
+        <ul class="dl-list" data-list="mac"></ul>
+      </article>
+      <article class="dl-card" data-os="win">
+        <h3>Windows</h3>
+        <p class="dl-note">Installer, or portable if you'd rather not install.</p>
+        <ul class="dl-list" data-list="win"></ul>
+      </article>
+      <article class="dl-card" data-os="linux">
+        <h3>Linux</h3>
+        <p class="dl-note">AppImage, Debian package, or a plain tarball.</p>
+        <ul class="dl-list" data-list="linux"></ul>
+      </article>
+    </div>
+
+    <details class="notes">
+      <summary>First launch shows a warning — here's why</summary>
+      <p>
+        Builds are unsigned, so both desktop platforms will ask before running
+        an app they haven't seen before.
+      </p>
+      <p>
+        <strong>macOS.</strong> Right-click the app and choose <em>Open</em>, or
+        clear the quarantine flag:
+      </p>
+      <pre><code>xattr -dr com.apple.quarantine "/Applications/Secure Helper.app"</code></pre>
+      <p>
+        <strong>Windows.</strong> SmartScreen shows a prompt — choose
+        <em>More info</em>, then <em>Run anyway</em>.
+      </p>
+      <p>
+        <strong>Linux.</strong> Mark the AppImage executable before running it:
+      </p>
+      <pre><code>chmod +x "Secure Helper-__VERSION__-x86_64.AppImage"</code></pre>
+    </details>
+
+    <p class="fineprint">
+      Prefer to build it yourself? <code>npm ci &amp;&amp; npm run dist</code>
+      produces every installer above from a single host.
+    </p>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <div>
+    <strong>Secure Helper</strong>
+    <span>by <a href="https://github.com/donghquinn">donghquinn</a> · Apache-2.0</span>
+  </div>
+  <nav>
+    <a href="https://github.com/donghquinn/go-crypto-utils">Source</a>
+    <a href="https://github.com/donghquinn/go-crypto-utils/releases">Releases</a>
+    <a href="https://github.com/donghquinn/go-crypto-utils/issues">Report an issue</a>
+  </nav>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
