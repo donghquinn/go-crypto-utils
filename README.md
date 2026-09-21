@@ -70,11 +70,24 @@ Set these once under **Settings → Secrets and variables → Actions**:
 | Secret | `R2_ACCESS_KEY_ID` | R2 API token key ID |
 | Secret | `R2_SECRET_ACCESS_KEY` | R2 API token secret |
 | Secret | `R2_BUCKET` | Bucket name |
-| Variable | `R2_PUBLIC_BASE_URL` | Public base URL, no trailing slash |
+| Variable | `R2_PUBLIC_BASE_URL` | Public read URL, no trailing slash |
 
-The bucket needs a public base URL (an `r2.dev` domain or a custom one) and a
-CORS rule allowing `GET` from the Pages origin, so the site can read the
-release manifest. Objects land under a versioned prefix:
+`R2_PUBLIC_BASE_URL` is **not** the S3 endpoint. Two different hosts are
+involved and neither can be derived from the other:
+
+- `https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com` is the S3 API, used for
+  *writing*. It only answers SigV4-signed requests, so an unauthenticated
+  browser `GET` there returns 401 — it can never be a download link.
+- `R2_PUBLIC_BASE_URL` is the bucket's *public read* host, either the generated
+  `https://pub-<hash>.r2.dev` domain or a custom one such as
+  `https://dl.example.com`. A bucket has none until public access is enabled.
+
+The workflow needs the second because it generates the download links:
+`scripts/build-manifest.mjs` writes an absolute `url` per file into the
+manifest, and `site.yml` bakes it into the page as a fallback.
+
+The bucket also needs a CORS rule allowing `GET` from `https://donghquinn.github.io`,
+so the site can read the manifest. Objects land under a versioned prefix:
 
 ```
 v2.0.0/Secure Helper-2.0.0-arm64.dmg    # and every other installer
@@ -95,25 +108,39 @@ the release as well.
 ### Download site
 
 `site/` is a static page deployed to GitHub Pages by
-`.github/workflows/site.yml`. Enable it once under **Settings → Pages →
-Source: GitHub Actions**.
+`.github/workflows/site.yml`, and served from
+
+> https://donghquinn.github.io/go-crypto-utils/
+
+Enable it once under **Settings → Pages → Build and deployment → Source:
+GitHub Actions** (or `gh api -X POST repos/donghquinn/go-crypto-utils/pages -f
+build_type=workflow`). Until a source is picked the Pages resource does not
+exist on the repo, and `deploy-pages` fails with a bare `HttpError: Not Found`.
+
+All asset paths in `index.html` are relative, which is what makes the
+`/go-crypto-utils/` subpath work — keep them that way.
 
 The workflow copies `screenshots/` and `build/icon.png` into `site/assets/`
 (generated, and git-ignored) and substitutes `__VERSION__` and
-`__DOWNLOAD_BASE__` in `index.html`. At runtime the page fetches
-`latest.json` from R2 and rebuilds its download list from it, so a new
-release appears without redeploying; the version baked in at deploy time is the
-fallback when that fetch fails. The R2 upload step triggers a redeploy on its
-way out.
+`__DOWNLOAD_BASE__` in `index.html`. At runtime the page fetches `latest.json`
+from R2 and rebuilds its download list from it, so a new release appears
+without redeploying; the version baked in at deploy time is the fallback when
+that fetch fails — which is also what happens if the bucket's CORS rule is
+missing. The R2 upload step triggers a redeploy on its way out via `gh workflow
+run site.yml`, so `site.yml` has to exist on the default branch for that step
+to succeed.
 
-To preview locally:
+To preview locally, assemble a throwaway copy the same way CI does:
 
 ```bash
-mkdir -p site/assets/screenshots && cp screenshots/*.png site/assets/screenshots/
-cp build/icon.png site/assets/icon.png
-sed -e 's|__VERSION__|2.0.0|g' -e 's|__DOWNLOAD_BASE__|https://dl.example.com|g' \
-  site/index.html > site/preview.html
-python3 -m http.server -d site 8000
+rm -rf /tmp/site-preview && cp -r site /tmp/site-preview
+mkdir -p /tmp/site-preview/assets/screenshots
+cp screenshots/*.png /tmp/site-preview/assets/screenshots/
+cp build/icon.png /tmp/site-preview/assets/icon.png
+sed -e 's|__VERSION__|2.0.0|g' \
+    -e 's|__DOWNLOAD_BASE__|https://dl.example.com|g' \
+    site/index.html > /tmp/site-preview/index.html
+python3 -m http.server -d /tmp/site-preview 8000
 ```
 
 ## Usage
